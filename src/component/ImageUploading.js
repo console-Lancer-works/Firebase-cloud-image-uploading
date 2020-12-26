@@ -16,9 +16,9 @@ export default function ImageUploading() {
     uploadTask.on(firebase.storage.TaskEvent.STATE_CHANGED, () => {
       let downloadUrl = uploadTask.snapshot.downloadUrl;
     });
-    showImage();
+    showImage(file.name);
   };
-  const showImage = () => {
+  const showImage = (name) => {
     let storageRef = firebase.storage().ref();
     let spaceRef = storageRef.child("images/" + files[0].name);
     storageRef
@@ -33,6 +33,7 @@ export default function ImageUploading() {
           },
           body: JSON.stringify({
             image: url,
+            name: name,
           }),
         })
           .then((res) => res.json())
@@ -50,13 +51,13 @@ export default function ImageUploading() {
     })
       .then((res) => res.json())
       .then((data) => {
-        // console.log(data);
+        console.log(data);
         setImages(data.data);
         console.log(images);
       })
       .catch((err) => console.log(err));
   }, []);
-  const deleteimage = (id) => {
+  const deleteimage = (id, name) => {
     fetch("http://localhost:4000/image/delete", {
       method: "DELETE",
       headers: {
@@ -72,10 +73,17 @@ export default function ImageUploading() {
         const newData = images.filter((item) => {
           return item._id !== result._id;
         });
+        deleteim(name);
         setImages(newData);
         // setImages(result);
       })
       .catch((err) => console.log(err));
+  };
+
+  const deleteim = (name) => {
+    let storagePath = firebase.storage().ref();
+
+    storagePath.child("images/" + name).delete();
   };
   return (
     <>
@@ -89,7 +97,7 @@ export default function ImageUploading() {
           return (
             <>
               <img src={i.image} />
-              <button onClick={() => deleteimage(i._id)}>delete</button>
+              <button onClick={() => deleteimage(i._id, i.name)}>delete</button>
             </>
           );
         })}
